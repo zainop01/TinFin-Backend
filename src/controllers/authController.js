@@ -62,20 +62,22 @@ exports.login = async (req, res) => {
             });
         }
 
+        // Generate token
         const token = jwt.sign({ id: user._id }, config.jwtSecretKey, {
             expiresIn: '1d'
         });
 
-        res.cookie('jwt', token, {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
-            maxAge: 24 * 60 * 60 * 1000
-        });
+        // Add token to the user object
+        const userWithToken = {
+            ...user._doc, // _doc contains the actual user data
+            token
+        };
 
+        // Return user with token in response
         res.status(200).json({
             status: 'success',
             message: 'Login successful',
-            data: { user }
+            data: { user: userWithToken }
         });
 
     } catch (err) {

@@ -6,9 +6,14 @@ exports.sendFriendRequest = async (req, res) => {
         const sender = await User.findById(senderId);
         const receiver = await User.findById(receiverId);
 
+        if (sender.friendRequests.includes(receiverId)) {
+            return res.status(400).json({ message: "User already sent you a friend request" });
+        }
+
         if (receiver.friendRequests.includes(senderId)) {
             return res.status(400).json({ message: "Friend request already sent" });
         }
+
         receiver.friendRequests.push(senderId);
         sender.sentRequests.push(receiverId);
 
@@ -21,12 +26,17 @@ exports.sendFriendRequest = async (req, res) => {
     }
 };
 
+
 exports.acceptFriendRequest = async (req, res) => {
     const { userId, friendId } = req.body;
     try {
         const user = await User.findById(userId);
         const friend = await User.findById(friendId);
-        
+
+        if (user.friends.includes(friendId) || friend.friends.includes(userId)) {
+            return res.status(400).json({ message: "Users are already friends" });
+        }
+
         user.friends.push(friendId);
         friend.friends.push(userId);
 
@@ -41,6 +51,7 @@ exports.acceptFriendRequest = async (req, res) => {
         res.status(500).json({ error: err.message });
     }
 };
+
 
 exports.getFriendRequests = async (req, res) => {
     try {

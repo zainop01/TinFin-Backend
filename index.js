@@ -1,12 +1,18 @@
 const express = require('express');
 const http = require('http');
-// const socketConfig = require('./src/sockets/chat.socket');
+const socketIO = require('socket.io');
 const config = require('./src/config/config');
 const connectDB = require('./src/loaders/db');
 const cors = require('cors');
 
 const app = express();
 const server = http.createServer(app);
+const io = socketIO(server, {
+    cors: {
+        origin: "*", 
+        methods: ["GET", "POST"]
+    }
+});
 
 app.use(cors());
 app.use(express.json());
@@ -19,9 +25,10 @@ const chatRoutes = require('./src/routes/chat.routes');
 
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
-// app.use('/api/chats', chatRoutes);
+app.use('/api/chats', chatRoutes);
 
-// socketConfig(server);
+// Socket.io configuration
+require('./src/sockets/chat.socket')(io);
 
 server.listen(config.port, () => {
     console.log(`Server running on port ${config.port}`);

@@ -1,11 +1,11 @@
-// const express = require('express');
-// const chatController = require('../controllers/chat.controller');
-// const router = express.Router();
+const express = require('express');
+const chatController = require('../controllers/chat.controller');
+const router = express.Router();
 
-// router.get('/conversation/:userId/:friendId', chatController.getConversation);
+router.get('/conversation/:userId/:friendId', chatController.getConversation);
 
-// router.post('/send-message', chatController.sendMessage);
+router.post('/send-message', chatController.sendMessage);
 
-// router.get('/messages/:conversationId', chatController.getMessages);
+router.get('/messages/:conversationId', chatController.getMessages);
 
-// module.exports = router;
+module.exports = router;

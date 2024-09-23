@@ -6,19 +6,23 @@ exports.getConversation = async (req, res) => {
     try {
         let conversation = await Conversation.findOne({
             participants: { $all: [userId, friendId] }
-        });
+        }).populate('participants', 'name email');  
 
         if (!conversation) {
             conversation = new Conversation({ participants: [userId, friendId] });
             await conversation.save();
         }
 
-        res.status(200).json(conversation);
+        const messages = await Message.find({ conversationId: conversation._id }).populate('sender', 'name email');
+
+        res.status(200).json({
+            conversation,
+            messages
+        });
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
 };
-
 exports.sendMessage = async (req, res) => {
     const { conversationId, senderId, text } = req.body;
     try {

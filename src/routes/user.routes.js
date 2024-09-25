@@ -12,5 +12,7 @@ router.get('/search', userController.searchUsers);
 
 router.get('/:userId/friend-requests', userController.getFriendRequests);
 
+router.get('/:userId/last-seen', userController.updateLastSeen);
+
 
 module.exports = router;

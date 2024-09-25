@@ -5,6 +5,7 @@ const config = require('./src/config/config');
 const connectDB = require('./src/loaders/db');
 const cors = require('cors');
 
+
 const app = express();
 const server = http.createServer(app);
 const io = socketIO(server, {
@@ -13,6 +14,8 @@ const io = socketIO(server, {
         methods: ["GET", "POST"]
     }
 });
+app.set('io', io); 
+
 
 app.use(cors());
 app.use(express.json());

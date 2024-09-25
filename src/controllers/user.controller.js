@@ -1,30 +1,38 @@
 const User = require('../models/user.model');
+const onlineUsers = require("../sockets/onlineUsers");
 
 exports.sendFriendRequest = async (req, res) => {
-    const { senderId, receiverId } = req.body;
-    try {
-        const sender = await User.findById(senderId);
-        const receiver = await User.findById(receiverId);
+  const { senderId, receiverId } = req.body;
+  try {
+    const sender = await User.findById(senderId);
+    const receiver = await User.findById(receiverId);
 
-        if (sender.friendRequests.includes(receiverId)) {
-            return res.status(400).json({ message: "User already sent you a friend request" });
-        }
-
-        if (receiver.friendRequests.includes(senderId)) {
-            return res.status(400).json({ message: "Friend request already sent" });
-        }
-
-        receiver.friendRequests.push(senderId);
-        sender.sentRequests.push(receiverId);
-
-        await receiver.save();
-        await sender.save();
-
-        res.status(200).json({ message: "Friend request sent" });
-    } catch (err) {
-        res.status(500).json({ error: err.message });
+    if (sender.sentRequests.includes(receiverId)) {
+      return res.status(400).json({ message: "Friend request already sent" });
     }
+
+    receiver.friendRequests.push(senderId);
+    sender.sentRequests.push(receiverId);
+
+    await receiver.save();
+    await sender.save();
+
+    // Emit socket event to receiver if they are online
+    if (onlineUsers[receiverId]) {
+      req.app.get('io').to(onlineUsers[receiverId]).emit("friend-request", {
+        senderId,
+        senderName: sender.name,
+        senderUsername: sender.username,
+      });
+    }
+
+    res.status(200).json({ message: "Friend request sent" });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 };
+
+
 
 
 exports.acceptFriendRequest = async (req, res) => {
@@ -95,5 +103,14 @@ exports.searchUsers = async (req, res) => {
         res.status(200).json(users);
     } catch (err) {
         res.status(500).json({ error: err.message });
+    }
+};
+exports.updateLastSeen = async (req, res) => {
+    try {
+        const user = await User.findById(req.params.userId, 'lastSeen');
+        if (!user) return res.status(404).send('User not found');
+        res.status(200).json({ lastSeen: user.lastSeen });
+    } catch (error) {
+        res.status(500).send('Server error');
     }
 };

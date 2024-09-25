@@ -41,9 +41,17 @@ exports.sendMessage = async (req, res) => {
 
 exports.getMessages = async (req, res) => {
     try {
-        const messages = await Message.find({ conversationId: req.params.conversationId });
-        res.status(200).json(messages);
+      const { lastMessageTime } = req.query;
+      const query = { conversationId: req.params.conversationId };
+  
+      if (lastMessageTime) {
+        query.createdAt = { $gt: new Date(lastMessageTime) };
+      }
+  
+      const messages = await Message.find(query);
+      res.status(200).json(messages);
     } catch (err) {
-        res.status(500).json({ error: err.message });
+      res.status(500).json({ error: err.message });
     }
-};
+  };
+  
